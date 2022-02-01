@@ -1,0 +1,23 @@
+
+.App {
+    border-spacing: 1px 1px;
+}
+
+table {
+    table-layout: auto; /* Фиксированная ширина ячеек */
+    width: auto; /* Ширина таблицы */
+   }
+   
+ th, td {
+    border: 2px solid #69c;
+    padding: auto 20px;
+    width: auto;
+ }
+
+ .item {
+    width: auto;
+    height: 40px;
+ }
+
+ 
+   
