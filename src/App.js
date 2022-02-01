@@ -19,55 +19,51 @@ const App = () => {
     await setData(arrData)
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(async () => {
     const response = await axios.get('http://178.128.196.163:3000/api/records');
     const arrData  = await response.data
-    await setData(arrData)
+    setData(arrData)
   }, [idCanche]);
 
-  const handleClickAdd = async () => {
-    //const id = _.uniqueId();
-    //const _v = 0;
+  const handleClickAdd = () => {
     const name = '';
     const surname = '';
     const telephone = '';
     const address = '';
     const email = '';
-    const data = {name, surname, telephone, address, email}
+    const data = { name, surname, telephone, address, email}
     const result =  {data};
-    await axios.put('http://178.128.196.163:3000/api/records', result);
-    const response = await axios.get('http://178.128.196.163:3000/api/records');
-      try {
-        const arrData  = await response.data
-        setData(arrData)
-      } catch (e) {
-        console.log(e)
-      }
-    console.log('конец события добавления')
+    setData([...dataRes, result])
   }
 
   const handleClickDelete = (idElement) => async (e) => {
-    console.log('удаление')
-    console.log(idElement)
     const response = await axios.delete(`http://178.128.196.163:3000/api/records/${idElement}`);
     try {
       if (response.data === true) {
-        console.log('данные успешно удалены')
         setData(dataRes.filter((el) => el._id !== idElement))
         return
       }
-      console.log(`не удалось  удалить`)
     } catch(e) {
       console.log(`неизвестная ошибка ${e}`)
     }
   };
   
-  const handleClickSave = (id) => async () =>  {
+  const handleClickSave = (id, elData) => async () =>  {
+    if (id === undefined) {
+      const data = {...elData}
+      await axios.put('http://178.128.196.163:3000/api/records', {data});
+      try {
+        const response = await axios.get('http://178.128.196.163:3000/api/records');
+        setData(response.data)
+      } catch(e) {
+        console.log(`неизвестная ошибка ${e}`)
+      }
+      return;
+    }
     const el = dataRes.filter(({_id}) => id === _id)[0]
-    const response = await axios.post(`http://178.128.196.163:3000/api/records/${id}`, el);
+    await axios.post(`http://178.128.196.163:3000/api/records/${id}`, el);
     try {
-      console.log(response)
-      console.log('успешно добавлен')
       setIdCanche('')
     } catch(e) {
       console.log(`неизвестная ошибка ${e}`)
@@ -88,33 +84,26 @@ const App = () => {
     });
 
     const result = arrObject.map((obj) => {
-
       const id = obj._id;
-      const status = id === idCanche ? false : true;
-
+      const status = id === undefined || id === idCanche ? false : true;
       const buttonChangSave = (status === true ? <button style={{'background-color': '#feff68'}} onClick={() => setIdCanche(id)}>{'изменить'}</button> : <button style={{'background-color': '#00c70f'}} onClick={handleClickSave(id, obj)}>{'сохранить'}</button>);
-
       const buttonDelete = (<button style={{'background-color': '#ff2e2c'}} onClick={handleClickDelete(id)}>{'удалить'}</button>);
-
       const itemsDom = keysItems.map((key) => {
-
         const handlerOchangItem = (e) => {
           const newAarr = items.map((elData) => {
             if (elData._id === id ) {
               const newData = elData.data ?? {}
               newData[key] = e.target.value;
               elData.data = newData
-              console.log(elData)
               return elData
             }
-          
             return elData
           })
           setData(newAarr)
         };
 
         const value = obj[key] ?? '';
-        return <th> <input disabled={status} onChange={handlerOchangItem} type={[key]} value={value}></input></th>  
+        return <th> <input disabled={key === '_id' ? true : status } onChange={handlerOchangItem} type={[key]} value={value}></input></th>  
       })
       return [...itemsDom, buttonChangSave,  buttonDelete,]
     });
